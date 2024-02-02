@@ -1,0 +1,91 @@
+// src/App.js
+
+import React, { useState, useEffect } from 'react';
+import './App.css';
+
+const instrumentData = [
+  { id: 1, name: 'Electric Guitar', price: 500 },
+  { id: 2, name: 'Acoustic Guitar', price: 300 },
+  { id: 3, name: 'Keyboard', price: 400 },
+  { id: 4, name: 'Drum Set', price: 600 },
+  { id: 5, name: 'Violin', price: 200 },
+];
+
+const App = () => {
+  const [cart, setCart] = useState([]);
+  const [retrying, setRetrying] = useState(false);
+
+  useEffect(() => {
+    // Call the fetchDataWithRetry function on mount
+    fetchDataWithRetry();
+  }, []);
+
+  const makeApiCall = () => {
+    // Simulate an API call with a 50% chance of success
+    const isSuccess = Math.random() < 0.5;
+
+    if (isSuccess) {
+      return Promise.resolve({ data: 'API call successful!' });
+    } else {
+      return Promise.reject(new Error('API call failed.'));
+    }
+  };
+
+  const fetchDataWithRetry = async () => {
+    let maxRetries = 5;
+    let retryInterval = 5000; // 5 seconds
+    let retries = 0;
+
+    setRetrying(true);
+
+    while (retries < maxRetries) {
+      try {
+        // Attempt to make the API call
+        const response = await makeApiCall();
+        // Process the response if successful
+        console.log(response);
+        break; // Break the loop if successful
+      } catch (error) {
+        console.error(`Error: ${error.message}`);
+        // Retry after a delay
+        await new Promise(resolve => setTimeout(resolve, retryInterval));
+        retries++;
+      }
+    }
+
+    setRetrying(false);
+  };
+
+  return (
+    <div className="App">
+      <div className="instruments">
+        <h2>Musical Instruments</h2>
+        {instrumentData.map((item) => (
+          <div key={item.id} className="instrument-card">
+            <p>{item.name}</p>
+            <p>${item.price}</p>
+            <button onClick={() => setCart([...cart, item])}>Add to Cart</button>
+          </div>
+        ))}
+      </div>
+
+      <div className="cart">
+        <div className="cart-button" onClick={fetchDataWithRetry}>
+          {retrying ? 'Retrying...' : 'Retry'}
+        </div>
+        {cart.map((item) => (
+          <div key={item.id} className="cart-item">
+            <p>{item.name}</p>
+            <p>${item.price}</p>
+            <button onClick={() => setCart(cart.filter((cartItem) => cartItem.id !== item.id))}>
+              Remove
+            </button>
+          </div>
+        ))}
+        <p>Total: ${cart.reduce((total, item) => total + item.price, 0)}</p>
+      </div>
+    </div>
+  );
+};
+
+export default App;

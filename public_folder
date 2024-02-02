@@ -1,0 +1,21 @@
+// ParentRoute component
+const ParentRoute = () => (
+  <div>
+    <h2>Parent Route</h2>
+    <Route path="/parent/child1" component={Child1} />
+    <Route path="/parent/child2" component={Child2} />
+  </div>
+);
+
+// Child1 and Child2 components
+const Child1 = () => <p>Child 1 content</p>;
+const Child2 = () => <p>Child 2 content</p>;
+
+// App component
+const App = () => (
+  <Router>
+    <div>
+      <Route path="/parent" component={ParentRoute} />
+    </div>
+  </Router>
+);

@@ -1,0 +1,118 @@
+// src/components/ContactUs.js
+
+import React, { useState } from 'react';
+import firebase from 'firebase/app';
+import 'firebase/database';
+
+const ContactUs = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Save the user data to Firebase
+    try {
+      await firebase.database().ref('contactUs').push({
+        name,
+        email,
+        phoneNumber,
+      });
+
+      alert('Data submitted successfully!');
+      // Optionally, you can redirect the user to another page after submission.
+      // For now, we'll just clear the form inputs.
+      setName('');
+      setEmail('');
+      setPhoneNumber('');
+    } catch (error) {
+      console.error('Error submitting data:', error.message);
+    }
+  };
+
+  return (
+    <div>
+      <h2>Contact Us</h2>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Name:
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label>
+          Email:
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+        <label>
+          Phone Number:
+          <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+        </label>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  );
+};
+
+export default ContactUs;
+
+
+
+// src/App.js
+
+import React from 'react';
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
+import ContactUs from './components/ContactUs';
+
+const App = () => {
+  return (
+    <Router>
+      <div>
+        <nav>
+          <ul>
+            <li>
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/about">About</Link>
+            </li>
+            <li>
+              <Link to="/contact-us">Contact Us</Link>
+            </li>
+          </ul>
+        </nav>
+
+        <hr />
+
+        <Route path="/" exact render={() => <h2>Home Page</h2>} />
+        <Route path="/about" render={() => <h2>About Page</h2>} />
+        <Route path="/contact-us" component={ContactUs} />
+      </div>
+    </Router>
+  );
+};
+
+export default App;
+
+
+
+// src/index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
+import firebase from 'firebase/app';
+import 'firebase/database';
+
+const firebaseConfig = {
+  // Your Firebase configuration
+};
+
+firebase.initializeApp(firebaseConfig);
+
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+);

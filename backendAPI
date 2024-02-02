@@ -1,0 +1,142 @@
+// src/App.js
+
+import React, { useState, useEffect, useCallback } from 'react';
+import './App.css';
+
+const App = () => {
+  const [movies, setMovies] = useState([]);
+  const [retrying, setRetrying] = useState(false);
+  const [newMovie, setNewMovie] = useState({ title: '', year: '' });
+
+  // Placeholder API URLs (replace with actual backend URLs)
+  const apiUrl = 'https://api.example.com/movies';
+  const fetchMoviesUrl = `${apiUrl}/fetchMovies`;
+  const addMovieUrl = `${apiUrl}/addMovie`;
+  const deleteMovieUrl = `${apiUrl}/deleteMovie`;
+
+  // Memoized fetchDataWithRetry function
+  const fetchDataWithRetry = useCallback(async () => {
+    let maxRetries = 5;
+    let retryInterval = 5000; // 5 seconds
+    let retries = 0;
+
+    setRetrying(true);
+
+    while (retries < maxRetries) {
+      try {
+        // Simulate an API call with a 50% chance of success
+        const isSuccess = Math.random() < 0.5;
+
+        if (isSuccess) {
+          // Fetch movies data from the backend
+          const response = await fetch(fetchMoviesUrl);
+          const data = await response.json();
+          setMovies(data);
+          break;
+        } else {
+          throw new Error('API call failed.');
+        }
+      } catch (error) {
+        console.error(`Error: ${error.message}`);
+        // Retry after a delay
+        await new Promise(resolve => setTimeout(resolve, retryInterval));
+        retries++;
+      }
+    }
+
+    setRetrying(false);
+  }, [fetchMoviesUrl]);
+
+  // Memoized addMovie function
+  const addMovie = useCallback(async () => {
+    try {
+      // Send a POST request to add a new movie to the backend
+      await fetch(addMovieUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newMovie),
+      });
+
+      // Fetch updated movies list after adding a new movie
+      fetchDataWithRetry();
+    } catch (error) {
+      console.error(`Error adding movie: ${error.message}`);
+    }
+  }, [addMovieUrl, fetchDataWithRetry, newMovie]);
+
+  // Memoized deleteMovie function
+  const deleteMovie = useCallback(
+    async (id) => {
+      try {
+        // Send a DELETE request to delete a movie from the backend
+        await fetch(`${deleteMovieUrl}/${id}`, {
+          method: 'DELETE',
+        });
+
+        // Fetch updated movies list after deleting a movie
+        fetchDataWithRetry();
+      } catch (error) {
+        console.error(`Error deleting movie: ${error.message}`);
+      }
+    },
+    [deleteMovieUrl, fetchDataWithRetry]
+  );
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewMovie((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle form submission
+  const handleAddMovie = (e) => {
+    e.preventDefault();
+    addMovie();
+    console.log('New Movie Object:', newMovie);
+    // Clear the form after adding a movie
+    setNewMovie({ title: '', year: '' });
+  };
+
+  // Use useEffect to fetch data when the component mounts
+  useEffect(() => {
+    fetchDataWithRetry();
+  }, [fetchDataWithRetry]);
+
+  return (
+    <div className="App">
+      <div className="form-container">
+        <h2>Add Movies</h2>
+        <form onSubmit={handleAddMovie}>
+          <label>
+            Title:
+            <input type="text" name="title" value={newMovie.title} onChange={handleInputChange} />
+          </label>
+          <label>
+            Year:
+            <input type="text" name="year" value={newMovie.year} onChange={handleInputChange} />
+          </label>
+          <button type="submit">Add Movie</button>
+        </form>
+      </div>
+
+      <div className="movies">
+        <h2>Movies</h2>
+        {movies.map((movie) => (
+          <div key={movie.id} className="movie-card">
+            <p>{movie.title}</p>
+            <p>Year: {movie.year}</p>
+            <button onClick={() => deleteMovie(movie.id)}>Delete Movie</button>
+          </div>
+        ))}
+      </div>
+
+      <div className="retry-button" onClick={fetchDataWithRetry}>
+        {retrying ? 'Retrying...' : 'Retry'}
+      </div>
+    </div>
+  );
+};
+
+export default App;

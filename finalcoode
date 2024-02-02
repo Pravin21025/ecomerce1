@@ -1,0 +1,93 @@
+// Inside your component or context where addToCart is defined
+
+const addToCart = async (item) => {
+  try {
+    // Get the user's email from your authentication context
+    const userEmail = getUserEmail(); // Replace with your actual function to get user email
+
+    // Remove '@' and '.' from the user's email
+    const sanitizedEmail = userEmail.replace(/[@.]/g, '');
+
+    // Make the POST request to store the cart item
+    const response = await fetch(`https://crudcrud.com/api/YOUR_CRUDCRUD_API_KEY/cart${sanitizedEmail}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(item),
+    });
+
+    if (response.ok) {
+      // Cart item added successfully
+      // Perform any additional logic if needed
+    } else {
+      // Handle error if the API call fails
+      console.error('Failed to add item to cart:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error during addToCart:', error);
+  }
+};
+
+
+
+// Inside your component or context where getCartItems is defined
+
+const getCartItems = async () => {
+  try {
+    // Get the user's email from your authentication context
+    const userEmail = getUserEmail(); // Replace with your actual function to get user email
+
+    // Remove '@' and '.' from the user's email
+    const sanitizedEmail = userEmail.replace(/[@.]/g, '');
+
+    // Make the GET request to retrieve cart items
+    const response = await fetch(`https://crudcrud.com/api/YOUR_CRUDCRUD_API_KEY/cart${sanitizedEmail}`);
+
+    if (response.ok) {
+      // Parse the response to get the cart items
+      const cartItems = await response.json();
+      return cartItems;
+    } else {
+      // Handle error if the API call fails
+      console.error('Failed to get cart items:', response.statusText);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error during getCartItems:', error);
+    return [];
+  }
+};
+
+
+
+// Inside your Cart component
+
+const Cart = () => {
+  const [cartItems, setCartItems] = useState([]);
+
+  useEffect(() => {
+    // Fetch and set cart items when the component mounts
+    const fetchCartItems = async () => {
+      const items = await getCartItems();
+      setCartItems(items);
+    };
+
+    fetchCartItems();
+  }, []);
+
+  return (
+    <div>
+      <h2>Cart</h2>
+      {cartItems.map((item) => (
+        <div key={item.id} className="cart-item">
+          <p>{item.name}</p>
+          <p>${item.price}</p>
+          {/* Add additional cart item details as needed */}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default Cart;

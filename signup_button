@@ -1,0 +1,47 @@
+import React, { useState } from 'react';
+
+const SignUpForm = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSignUp = async () => {
+    setLoading(true);
+
+    try {
+      // Make the signup API call
+      // Replace the following line with your actual signup logic
+      const response = await fetch('your-signup-endpoint', {
+        method: 'POST',
+        // Include necessary headers and body
+      });
+
+      if (response.ok) {
+        // Handle successful signup
+        console.log('Signup successful!');
+      } else {
+        // Handle signup failure
+        setError('Signup failed. Please try again.'); // Extract error message from response if available
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+      setError('An unexpected error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <input type="text" placeholder="Email" />
+      <input type="password" placeholder="Password" />
+      {loading ? (
+        <div className="loader">Loading...</div>
+      ) : (
+        <button onClick={handleSignUp}>Sign Up</button>
+      )}
+      {error && <div className="error-message">{error}</div>}
+    </div>
+  );
+};
+
+export default SignUpForm;
